@@ -15,6 +15,7 @@ export class Game extends Scene {
         this.add.image(512, 384, 'background').setAlpha(0.5);
 
         this.videoStack = 0;
+        this.MAX_BALL_COUNT = 100;
 
         this.video1 = this.add.video(512, this.gameHeight, 'video1');
         this.video1.setOrigin(0.5, 1);
@@ -79,9 +80,11 @@ export class Game extends Scene {
             // });
         })
 
-        this.ball = this.physics.add.image(512, 550, 'assets', 'ball1').setCollideWorldBounds(true).setBounce(1);
-        this.ball.setData('onPaddle', true);
-        this.ball.body.setCircle(11);
+        this.balls = this.physics.add.group();
+        this.firstBall = this.balls.create(512, 550, 'assets', 'ball1');
+        this.firstBall.setCollideWorldBounds(true).setBounce(1);
+        this.firstBall.setData('onPaddle', true);
+        this.firstBall.body.setCircle(11);
 
         this.paddle = this.physics.add.image(512, 700, 'assets', 'paddle1').setImmovable();
 
@@ -89,23 +92,24 @@ export class Game extends Scene {
         this.topWall = this.add.rectangle(512, 900, 1024, 50);
         this.physics.add.existing(this.topWall, true); // true는 static body로 설정
         this.topWall.setVisible(false); // 보이지 않게 설정
-        this.physics.add.collider(this.ball, this.topWall);
 
-        this.physics.add.collider(this.ball, this.bricks, this.hitBrick, null, this);
-        this.physics.add.collider(this.ball, this.paddle, this.hitPaddle, null, this);
+        // 충돌 설정
+        this.physics.add.collider(this.balls, this.topWall, this.hitTopWall, null, this);
+        this.physics.add.collider(this.balls, this.bricks, this.hitBrick, null, this);
+        this.physics.add.collider(this.balls, this.paddle, this.hitPaddle, null, this);
 
         this.input.on('pointermove', (pointer) => {
             this.paddle.x = Phaser.Math.Clamp(pointer.x, 50, 974);
 
-            if (this.ball.getData('onPaddle')) {
-                this.ball.x = this.paddle.x;
+            if (this.firstBall.getData('onPaddle')) {
+                this.firstBall.x = this.paddle.x;
             }
         }, this);
 
         this.input.on('pointerup', (pointer) => {
-            if (this.ball.getData('onPaddle')) {
-                this.ball.setVelocity(-75, -300);
-                this.ball.setData('onPaddle', false);
+            if (this.firstBall.getData('onPaddle')) {
+                this.firstBall.setVelocity(-75, -300);
+                this.firstBall.setData('onPaddle', false);
             }
         }, this);
     }
@@ -119,7 +123,7 @@ export class Game extends Scene {
             }
 
             this.videoStack++;
-            this.time.delayedCall(1000, () => {
+            this.time.delayedCall(200, () => {
                 this.videoStack--;
 
                 if (this.videoStack === 0) {
@@ -130,7 +134,58 @@ export class Game extends Scene {
             if (this.bricks.countActive() === 0) {
                 this.resetLevel();
             }
+
+            // 10% 확률로 아이템 생성
+            if (Phaser.Math.Between(1, 100) <= 50) {
+                // 벽돌이 있던 위치에 아이템 생성
+                const item = this.physics.add.image(brick.x, brick.y, 'assets', 'ball2');
+
+                // 아이템이 아래로 떨어지도록 설정
+                item.setVelocity(0, 150);
+
+                this.physics.add.collider(item, this.topWall, (item, topWall) => {
+                    item.destroy();
+                }, null, this);
+
+                // // 패들과 아이템 충돌 설정
+                this.physics.add.overlap(this.paddle, item, (paddle, item) => {
+                    if (this.balls.countActive() >= this.MAX_BALL_COUNT) {
+                        item.destroy();
+                        return;
+                    }
+
+                    const angle = [120, 240];
+                    this.balls.children.each((b) => {
+                        if (this.balls.countActive() >= this.MAX_BALL_COUNT) {
+                            return;
+                        }
+
+                        if (b.body.y > 700) {
+                            return;
+                        }
+
+                        for (let i = 0; i < 2; i++) {
+                            const newBall = this.balls.create(b.x, b.y, 'assets', 'ball1')
+                                .setCollideWorldBounds(true)
+                                .setBounce(1);
+
+                            newBall.body.setCircle(11);
+
+                            // 약간 다른 각도로 발사
+                            const newVelocity = b.body.velocity.clone().rotate(Phaser.Math.DegToRad(angle[i]));
+                            newBall.setVelocity(newVelocity.x, newVelocity.y);
+                        }
+                    });
+
+                    // 아이템 제거
+                    item.destroy();
+                }, null, this);
+            }
         }
+    }
+
+    hitTopWall(topWall, ball) {
+        ball.destroy();
     }
 
     playVideo1() {
@@ -151,21 +206,7 @@ export class Game extends Scene {
         this.video2.play(true);
     }
 
-    resetBall() {
-        this.ball.setVelocity(0);
-        this.ball.setPosition(this.paddle.x, 500);
-        this.ball.setData('onPaddle', true);
-    }
-
-    resetLevel() {
-        this.resetBall();
-
-        this.bricks.children.each(brick => {
-            brick.enableBody(false, 0, 0, true, true);
-        });
-    }
-
-    hitPaddle(ball, paddle) {
+    hitPaddle(paddle, ball) {
         const BALL_SPEED = 400; // 일정한 속도 설정
         const MAX_BOUNCE_ANGLE = Math.PI / 3; // 최대 반사각 (60도)
 
@@ -180,9 +221,5 @@ export class Game extends Scene {
     }
 
     update() {
-        if (this.ball.y > 2000) {
-            // this.resetLevel();
-            this.scene.start('GameOver');
-        }
     }
 }
