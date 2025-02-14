@@ -30,14 +30,14 @@ export class Game extends Scene {
 
         this.bricks = this.physics.add.staticGroup({
             key: 'assets', frame: ['blue1'],
-            frameQuantity: 500,
+            frameQuantity: 992,
             gridAlign: {
-                width: 25,
-                height: 20,
+                width: 32,
+                height: 31,
                 cellWidth: 32,
                 cellHeight: 16,
-                x: 112,
-                y: 100,
+                x: -16,
+                y: -8,
             }
         });
         this.bricks.children.each((brick) => {
@@ -79,17 +79,23 @@ export class Game extends Scene {
             // });
         })
 
-        this.ball = this.physics.add.image(400, 500, 'assets', 'ball1').setCollideWorldBounds(true).setBounce(1);
+        this.ball = this.physics.add.image(512, 550, 'assets', 'ball1').setCollideWorldBounds(true).setBounce(1);
         this.ball.setData('onPaddle', true);
         this.ball.body.setCircle(11);
 
-        this.paddle = this.physics.add.image(400, 550, 'assets', 'paddle1').setImmovable();
+        this.paddle = this.physics.add.image(512, 700, 'assets', 'paddle1').setImmovable();
+
+        // 보이지 않는 상단 벽 생성
+        this.topWall = this.add.rectangle(512, 900, 1024, 50);
+        this.physics.add.existing(this.topWall, true); // true는 static body로 설정
+        this.topWall.setVisible(false); // 보이지 않게 설정
+        this.physics.add.collider(this.ball, this.topWall);
 
         this.physics.add.collider(this.ball, this.bricks, this.hitBrick, null, this);
         this.physics.add.collider(this.ball, this.paddle, this.hitPaddle, null, this);
 
         this.input.on('pointermove', (pointer) => {
-            this.paddle.x = Phaser.Math.Clamp(pointer.x, 52, 748);
+            this.paddle.x = Phaser.Math.Clamp(pointer.x, 50, 974);
 
             if (this.ball.getData('onPaddle')) {
                 this.ball.x = this.paddle.x;
@@ -160,23 +166,17 @@ export class Game extends Scene {
     }
 
     hitPaddle(ball, paddle) {
-        let diff = 0;
+        const BALL_SPEED = 400; // 일정한 속도 설정
+        const MAX_BOUNCE_ANGLE = Math.PI / 3; // 최대 반사각 (60도)
 
-        if (ball.x < paddle.x) {
-            //  Ball is on the left-hand side of the paddle
-            diff = paddle.x - ball.x;
-            ball.setVelocityX(-10 * diff);
-        }
-        else if (ball.x > paddle.x) {
-            //  Ball is on the right-hand side of the paddle
-            diff = ball.x - paddle.x;
-            ball.setVelocityX(10 * diff);
-        }
-        else {
-            //  Ball is perfectly in the middle
-            //  Add a little random X to stop it bouncing straight up!
-            ball.setVelocityX(2 + Math.random() * 8);
-        }
+        let relativeIntersectX = (ball.x - paddle.x) / (paddle.width / 2);
+
+        let bounceAngle = relativeIntersectX * MAX_BOUNCE_ANGLE;
+
+        let velocityX = BALL_SPEED * Math.sin(bounceAngle);
+        let velocityY = -BALL_SPEED * Math.cos(bounceAngle);
+
+        ball.setVelocity(velocityX, velocityY);
     }
 
     update() {

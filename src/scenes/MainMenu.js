@@ -16,10 +16,8 @@ export class MainMenu extends Scene {
             align: 'center'
         }).setOrigin(0.5);
 
-        this.input.once('pointerdown', () => {
-
+        this.input.keyboard.once('keydown-SPACE', () => {
             this.scene.start('Game');
-
         });
     }
 }
