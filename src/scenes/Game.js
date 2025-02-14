@@ -5,10 +5,26 @@ export class Game extends Scene {
         super('Game');
     }
 
+    init() {
+        this.gameHeight = this.cameras.main.height;
+    }
+
     create() {
         this.cameras.main.setBackgroundColor(0x00ff00);
 
         this.add.image(512, 384, 'background').setAlpha(0.5);
+
+        this.videoStack = 0;
+
+        this.video1 = this.add.video(512, this.gameHeight, 'video1');
+        this.video1.setOrigin(0.5, 1);
+        this.video1.setDepth(3);
+        this.video1.play(true);
+
+        this.video2 = this.add.video(512, this.gameHeight, 'video2');
+        this.video2.setOrigin(0.5, 1);
+        this.video2.setDepth(3);
+        this.video2.setVisible(false);
 
         this.physics.world.setBoundsCollision(true, true, true, true);
 
@@ -65,6 +81,7 @@ export class Game extends Scene {
 
         this.ball = this.physics.add.image(400, 500, 'assets', 'ball1').setCollideWorldBounds(true).setBounce(1);
         this.ball.setData('onPaddle', true);
+        this.ball.body.setCircle(11);
 
         this.paddle = this.physics.add.image(400, 550, 'assets', 'paddle1').setImmovable();
 
@@ -91,10 +108,41 @@ export class Game extends Scene {
         if (brick.getData('kind') === 'blue1') {
             brick.disableBody(true, true);
 
+            if (this.video1.visible) {
+                this.playVideo2();
+            }
+
+            this.videoStack++;
+            this.time.delayedCall(1000, () => {
+                this.videoStack--;
+
+                if (this.videoStack === 0) {
+                    this.playVideo1();
+                }
+            }, null, this);
+
             if (this.bricks.countActive() === 0) {
                 this.resetLevel();
             }
         }
+    }
+
+    playVideo1() {
+        this.video2.setVisible(false);
+        this.video2.stop();
+
+        this.video1.seekTo(0);
+        this.video1.setVisible(true);
+        this.video1.play(true);
+    }
+
+    playVideo2() {
+        this.video1.setVisible(false).stop();
+        this.video1.stop();
+
+        this.video2.seekTo(0);
+        this.video2.setVisible(true);
+        this.video2.play(true);
     }
 
     resetBall() {
@@ -132,7 +180,7 @@ export class Game extends Scene {
     }
 
     update() {
-        if (this.ball.y > 1000) {
+        if (this.ball.y > 2000) {
             // this.resetLevel();
             this.scene.start('GameOver');
         }
