@@ -19,5 +19,9 @@ export class MainMenu extends Scene {
         this.input.keyboard.once('keydown-SPACE', () => {
             this.scene.start('Game');
         });
+
+        this.input.on('pointerdown', () => {
+            this.scene.start('Game');
+        });
     }
 }

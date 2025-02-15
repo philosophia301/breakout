@@ -106,7 +106,7 @@ export class Game extends Scene {
             }
         }, this);
 
-        this.input.on('pointerup', (pointer) => {
+        this.input.on('pointerdown', (pointer) => {
             if (this.firstBall.getData('onPaddle')) {
                 this.firstBall.setVelocity(-75, -300);
                 this.firstBall.setData('onPaddle', false);
