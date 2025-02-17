@@ -17,11 +17,11 @@ export class MainMenu extends Scene {
         }).setOrigin(0.5);
 
         this.input.keyboard.once('keydown-SPACE', () => {
-            this.scene.start('Game');
+            this.scene.start('Editor');
         });
 
         this.input.on('pointerdown', () => {
-            this.scene.start('Game');
+            this.scene.start('Editor');
         });
     }
 }

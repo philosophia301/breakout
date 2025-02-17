@@ -5,8 +5,9 @@ export class Game extends Scene {
         super('Game');
     }
 
-    init() {
+    init(data) {
         this.gameHeight = this.cameras.main.height;
+        this.brickState = data.brickState;
     }
 
     create() {
@@ -43,44 +44,17 @@ export class Game extends Scene {
                 y: -brickHeight * 1.5,
             }
         });
-        this.bricks.children.each((brick) => {
+        this.bricks.children.each((brick, index) => {
             brick.setScale(0.25);
             brick.body.setSize(brickWidth, brickHeight);
             brick.body.setOffset(brickWidth * 1.5, brickHeight * 1.5);
+
+            const row = Math.floor(index / 64);
+            const col = index % 64;
+            brick.setData('row', row);
+            brick.setData('col', col);
+            brick.setFrame(this.brickState[row][col]);
         });
-
-        this.bricks.children.each((brick) => {
-            brick.setData('kind', 'blue1');
-
-            brick.setInteractive();
-            brick.on('pointerover', (pointer) => {
-                if (this.input.activePointer.isDown) {
-                    if (pointer.event.ctrlKey) {
-                        brick.setData('kind', 'blank');
-                        brick.setVisible(false);
-                    } else {
-                        brick.setVisible(true);
-                        brick.setData('kind', 'silver1');
-                        brick.setFrame('silver1');
-                    }
-                }
-            });
-
-            // brick.on('pointerdown', (pointer) => {
-            //     if (this.input.activePointer.isDown) {
-            //         if (pointer.event.ctrlKey) {
-            //             brick.setData('kind', 'blank');
-            //             brick.setVisible(false);
-            //             brick.body.enable = false;
-            //         } else {
-            //             brick.setData('kind', 'silver1');
-            //             brick.body.enable = true;
-            //             brick.setVisible(true);
-            //             brick.setFrame('silver1');
-            //         }
-            //     }
-            // });
-        })
 
         this.balls = this.physics.add.group();
         this.firstBall = this.balls.create(512, 550, 'assets', 'ball1').setScale(0.5);
@@ -117,7 +91,7 @@ export class Game extends Scene {
     }
 
     hitBrick(ball, brick) {
-        if (brick.getData('kind') === 'blue1') {
+        if (this.brickState[brick.getData('row')][brick.getData('col')] === 'blue1') {
             brick.disableBody(true, true);
 
             if (this.video1.visible) {
@@ -133,19 +107,15 @@ export class Game extends Scene {
                 }
             }, null, this);
 
-            // 10% 확률로 아이템 생성
             if (Phaser.Math.Between(1, 100) <= 50) {
-                // 벽돌이 있던 위치에 아이템 생성
                 const item = this.physics.add.image(brick.x, brick.y, 'assets', 'ball2');
-
-                // 아이템이 아래로 떨어지도록 설정
                 item.setVelocity(0, 150);
 
                 this.physics.add.collider(item, this.topWall, (item, topWall) => {
                     item.destroy();
                 }, null, this);
 
-                // // 패들과 아이템 충돌 설정
+                // 패들과 아이템 충돌 설정
                 this.physics.add.overlap(this.paddle, item, (paddle, item) => {
                     if (this.balls.countActive() >= this.MAX_BALL_COUNT) {
                         item.destroy();
