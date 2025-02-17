@@ -10,41 +10,43 @@ export class Game extends Scene {
     }
 
     create() {
-        this.cameras.main.setBackgroundColor(0x00ff00);
-
-        this.add.image(512, 384, 'background').setAlpha(0.5);
+        this.cameras.main.setBackgroundColor(0xffffff);
 
         this.videoStack = 0;
-        this.MAX_BALL_COUNT = 100;
-
+        this.MAX_BALL_COUNT = 500;
+        this.add.frame
         this.video1 = this.add.video(512, this.gameHeight, 'video1');
         this.video1.setOrigin(0.5, 1);
         this.video1.setDepth(3);
+        this.video1.setScale(0.71);
         this.video1.play(true);
 
         this.video2 = this.add.video(512, this.gameHeight, 'video2');
         this.video2.setOrigin(0.5, 1);
         this.video2.setDepth(3);
+        this.video2.setScale(0.71);
         this.video2.setVisible(false);
 
         this.physics.world.setBoundsCollision(true, true, true, true);
 
+        const brickWidth = 16;
+        const brickHeight = 8;
         this.bricks = this.physics.add.staticGroup({
             key: 'assets', frame: ['blue1'],
-            frameQuantity: 992,
+            frameQuantity: 64 * 64,
             gridAlign: {
-                width: 32,
-                height: 31,
-                cellWidth: 32,
-                cellHeight: 16,
-                x: -16,
-                y: -8,
+                width: 64,
+                height: 64,
+                cellWidth: brickWidth,
+                cellHeight: brickHeight,
+                x: -brickWidth * 1.5,
+                y: -brickHeight * 1.5,
             }
         });
         this.bricks.children.each((brick) => {
-            brick.setScale(0.5);
-            brick.body.setSize(32, 16);
-            brick.body.setOffset(16, 8);
+            brick.setScale(0.25);
+            brick.body.setSize(brickWidth, brickHeight);
+            brick.body.setOffset(brickWidth * 1.5, brickHeight * 1.5);
         });
 
         this.bricks.children.each((brick) => {
@@ -81,7 +83,7 @@ export class Game extends Scene {
         })
 
         this.balls = this.physics.add.group();
-        this.firstBall = this.balls.create(512, 550, 'assets', 'ball1');
+        this.firstBall = this.balls.create(512, 550, 'assets', 'ball1').setScale(0.5);
         this.firstBall.setCollideWorldBounds(true).setBounce(1);
         this.firstBall.setData('onPaddle', true);
         this.firstBall.body.setCircle(11);
@@ -131,10 +133,6 @@ export class Game extends Scene {
                 }
             }, null, this);
 
-            if (this.bricks.countActive() === 0) {
-                this.resetLevel();
-            }
-
             // 10% 확률로 아이템 생성
             if (Phaser.Math.Between(1, 100) <= 50) {
                 // 벽돌이 있던 위치에 아이템 생성
@@ -167,12 +165,12 @@ export class Game extends Scene {
                         for (let i = 0; i < 2; i++) {
                             const newBall = this.balls.create(b.x, b.y, 'assets', 'ball1')
                                 .setCollideWorldBounds(true)
-                                .setBounce(1);
+                                .setBounce(1).setScale(0.5);
 
                             newBall.body.setCircle(11);
 
                             // 약간 다른 각도로 발사
-                            const newVelocity = b.body.velocity.clone().rotate(Phaser.Math.DegToRad(angle[i]));
+                            const newVelocity = b.body.velocity.clone().rotate(Phaser.Math.DegToRad(angle[i] + Phaser.Math.Between(-30, 30)));
                             newBall.setVelocity(newVelocity.x, newVelocity.y);
                         }
                     });
@@ -221,5 +219,8 @@ export class Game extends Scene {
     }
 
     update() {
+        if (this.bricks.countActive() === 0 || this.balls.countActive() === 0) {
+            this.scene.start('GameOver');
+        }
     }
 }
