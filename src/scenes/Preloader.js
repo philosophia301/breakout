@@ -29,6 +29,7 @@ export class Preloader extends Scene {
         this.load.setPath('assets');
 
         this.load.image('logo', 'logo.png');
+        this.load.image('kick', 'kick.png');
         this.load.atlas('assets', 'breakout.png', 'breakout.json');
         this.load.video('video1', 'chill-guy-calm.mp4');
         this.load.video('video2', 'chill-guy-remix.mp4');

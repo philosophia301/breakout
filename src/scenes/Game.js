@@ -28,6 +28,10 @@ export class Game extends Scene {
         this.video2.setScale(0.71);
         this.video2.setVisible(false);
 
+        this.background = this.add.image(512, 512, 'kick');
+        this.background.setOrigin(0.5, 1);
+        this.background.setScale(0.15);
+
         this.physics.world.setBoundsCollision(true, true, true, true);
 
         const brickWidth = 16;
