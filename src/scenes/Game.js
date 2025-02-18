@@ -44,6 +44,7 @@ export class Game extends Scene {
                 y: -brickHeight * 1.5,
             }
         });
+
         this.bricks.children.each((brick, index) => {
             brick.setScale(0.25);
             brick.body.setSize(brickWidth, brickHeight);
@@ -54,6 +55,10 @@ export class Game extends Scene {
             brick.setData('row', row);
             brick.setData('col', col);
             brick.setFrame(this.brickState[row][col]);
+
+            if (this.brickState[row][col] === 'blank') {
+                brick.disableBody(true, true);
+            }
         });
 
         this.balls = this.physics.add.group();

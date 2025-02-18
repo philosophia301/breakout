@@ -44,41 +44,85 @@ export class Editor extends Scene {
         this.bricks.children.each((brick) => {
             brick.setInteractive();
             brick.on('pointerover', (pointer) => {
-                if (this.input.activePointer.isDown) {
-                    if (pointer.event.ctrlKey) {
-                        brick.setFrame('blank');
-                        this.brickState[brick.getData('row')][brick.getData('col')] = 'blank';
-                        brick.setVisible(false);
-                    } else {
-                        brick.setFrame('silver1');
-                        this.brickState[brick.getData('row')][brick.getData('col')] = 'silver1';
-                        brick.setVisible(true);
-                    }
+                if (pointer.event.ctrlKey) {
+                    brick.setFrame('blank');
+                    this.brickState[brick.getData('row')][brick.getData('col')] = 'blank';
+                } else if (pointer.event.shiftKey) {
+                    brick.setFrame('silver1');
+                    this.brickState[brick.getData('row')][brick.getData('col')] = 'silver1';
+                } else if (pointer.event.altKey) {
+                    brick.setFrame('blue1');
+                    this.brickState[brick.getData('row')][brick.getData('col')] = 'blue1';
                 }
             });
 
-            // brick.on('pointerdown', (pointer) => {
-            //     if (this.input.activePointer.isDown) {
-            //         if (pointer.event.ctrlKey) {
-            //             brick.setData('kind', 'blank');
-            //             brick.setVisible(false);
-            //             brick.body.enable = false;
-            //         } else {
-            //             brick.setData('kind', 'silver1');
-            //             brick.body.enable = true;
-            //             brick.setVisible(true);
-            //             brick.setFrame('silver1');
-            //         }
-            //     }
-            // });
+            brick.on('pointerdown', (pointer) => {
+                if (pointer.leftButtonDown()) {
+                    if (this.firstAxis) {
+                        this.firstAxis[0].setFrame(this.brickState[this.firstAxis[1]][this.firstAxis[2]]);
+                    }
+                    brick.setFrame('red2');
+                    this.firstAxis = [brick, brick.getData('row'), brick.getData('col')];
+                } else if (pointer.rightButtonDown()) {
+                    if (this.secondAxis) {
+                        this.secondAxis[0].setFrame(this.brickState[this.secondAxis[1]][this.secondAxis[2]]);
+                    }
+                    brick.setFrame('red2');
+                    this.secondAxis = [brick, brick.getData('row'), brick.getData('col')];
+                }
+
+                console.log('첫번째 축:', this.firstAxis);
+                console.log('두번째 축:', this.secondAxis);
+            });
         })
+
+        this.input.keyboard.on('keydown-Z', () => {
+            this.handleSelectArea('blank');
+        });
+
+        this.input.keyboard.on('keydown-X', () => {
+            this.handleSelectArea('silver1');
+        });
+
+        this.input.keyboard.on('keydown-C', () => {
+            this.handleSelectArea('blue1');
+        });
+
 
         this.input.keyboard.once('keydown-SPACE', () => {
             this.scene.start('Game', { brickState: this.brickState });
         });
 
-        // this.input.on('pointerdown', () => {
-        //     this.scene.start('Game', { brickState: this.brickState });
-        // });
+        this.input.on('pointerdown', () => {
+            if (/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)) {
+                this.scene.start('Game', { brickState: this.brickState });
+            }
+        });
+    }
+
+    handleSelectArea(frame) {
+        if (this.firstAxis && this.secondAxis) {
+            const startRow = Math.min(this.firstAxis[1], this.secondAxis[1]);
+            const endRow = Math.max(this.firstAxis[1], this.secondAxis[1]);
+            const startCol = Math.min(this.firstAxis[2], this.secondAxis[2]);
+            const endCol = Math.max(this.firstAxis[2], this.secondAxis[2]);
+
+            const [finalStartRow, finalEndRow] = [startRow, endRow].sort((a, b) => a - b);
+            const [finalStartCol, finalEndCol] = [startCol, endCol].sort((a, b) => a - b);
+
+            for (let row = finalStartRow; row <= finalEndRow; row++) {
+                for (let col = finalStartCol; col <= finalEndCol; col++) {
+                    this.bricks.children.each((brick) => {
+                        if (brick.getData('row') === row && brick.getData('col') === col) {
+                            brick.setFrame(frame);
+                            this.brickState[row][col] = frame;
+                        }
+                    });
+                }
+            }
+
+            this.firstAxis = null;
+            this.secondAxis = null;
+        }
     }
 }
