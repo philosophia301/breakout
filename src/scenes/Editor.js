@@ -90,12 +90,57 @@ export class Editor extends Scene {
 
 
         this.input.keyboard.once('keydown-SPACE', () => {
+            const saveData = JSON.stringify(this.brickState);
+            localStorage.setItem('brickEditorData', saveData);
             this.scene.start('Game', { brickState: this.brickState });
         });
 
         this.input.on('pointerdown', () => {
             if (/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)) {
+                const saveData = JSON.stringify(this.brickState);
+                localStorage.setItem('brickEditorData', saveData);
                 this.scene.start('Game', { brickState: this.brickState });
+            }
+        });
+
+        // 저장 버튼 추가
+        const saveButton = this.add.text(16, 768, '저장', {
+            fontSize: '60px',
+            fill: '#fff',
+            backgroundColor: '#333',
+            padding: { x: 10, y: 5 }
+        }).setInteractive();
+
+        saveButton.on('pointerdown', () => {
+            const saveData = JSON.stringify(this.brickState);
+            localStorage.setItem('brickEditorData', saveData);
+
+            const savedText = this.add.text(20, 850, '저장완료!', { fontSize: '30px', fill: '#fff' })
+                .setAlpha(1)
+                .setDepth(1);
+            this.time.delayedCall(1000, () => {
+                savedText.destroy();
+            });
+        });
+
+        // 불러오기 버튼 추가
+        const loadButton = this.add.text(150, 768, '불러오기', {
+            fontSize: '60px',
+            fill: '#fff',
+            backgroundColor: '#333',
+            padding: { x: 10, y: 5 }
+        }).setInteractive();
+
+        loadButton.on('pointerdown', () => {
+            const savedData = localStorage.getItem('brickEditorData');
+            if (savedData) {
+                this.brickState = JSON.parse(savedData);
+                // 저장된 상태로 블록들 업데이트
+                this.bricks.children.each((brick) => {
+                    const row = brick.getData('row');
+                    const col = brick.getData('col');
+                    brick.setFrame(this.brickState[row][col]);
+                });
             }
         });
     }
