@@ -15,7 +15,8 @@ const config = {
         default: 'arcade',
         arcade: {
             debug: false,
-        }
+            fps: 120,
+        },
     },
     scale: {
         mode: Phaser.Scale.FIT,

@@ -10,12 +10,14 @@ export class Editor extends Scene {
 
         const brickWidth = 16;
         const brickHeight = 8;
+        const gridWidth = 64;
+        const gridHeight = 80;
         this.bricks = this.physics.add.staticGroup({
-            key: 'assets', frame: ['blue1'],
-            frameQuantity: 64 * 64,
+            key: 'assets', frame: ['green1'],
+            frameQuantity: gridWidth * gridHeight,
             gridAlign: {
-                width: 64,
-                height: 64,
+                width: gridWidth,
+                height: gridHeight,
                 cellWidth: brickWidth,
                 cellHeight: brickHeight,
                 x: -brickWidth * 1.5,
@@ -23,8 +25,8 @@ export class Editor extends Scene {
             }
         });
         this.bricks.children.each((brick, index) => {
-            const row = Math.floor(index / 64);
-            const col = index % 64;
+            const row = Math.floor(index / gridWidth);
+            const col = index % gridWidth;
             brick.setData('row', row);
             brick.setData('col', col);
             brick.setScale(0.25);
@@ -37,7 +39,7 @@ export class Editor extends Scene {
             }
 
             // 초기값 설정
-            this.brickState[row][col] = 'blue1';
+            this.brickState[row][col] = 'green1';
         });
 
 
@@ -51,7 +53,7 @@ export class Editor extends Scene {
                     brick.setFrame('silver1');
                     this.brickState[brick.getData('row')][brick.getData('col')] = 'silver1';
                 } else if (pointer.event.altKey) {
-                    brick.setFrame('blue1');
+                    brick.setFrame('green1');
                     this.brickState[brick.getData('row')][brick.getData('col')] = 'blue1';
                 }
             });
@@ -85,7 +87,7 @@ export class Editor extends Scene {
         });
 
         this.input.keyboard.on('keydown-C', () => {
-            this.handleSelectArea('blue1');
+            this.handleSelectArea('green1');
         });
 
 

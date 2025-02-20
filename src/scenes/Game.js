@@ -11,37 +11,39 @@ export class Game extends Scene {
     }
 
     create() {
-        this.cameras.main.setBackgroundColor(0xffffff);
+        this.cameras.main.setBackgroundColor(0x161450);
 
         this.videoStack = 0;
+        this.videoStack = 0;
         this.MAX_BALL_COUNT = 500;
-        this.add.frame
-        this.video1 = this.add.video(512, this.gameHeight, 'video1');
-        this.video1.setOrigin(0.5, 1);
+
+
+        this.video1 = this.add.video(512, this.gameHeight * 0.81, 'video1');
         this.video1.setDepth(3);
         this.video1.setScale(0.71);
         this.video1.play(true);
 
-        this.video2 = this.add.video(512, this.gameHeight, 'video2');
-        this.video2.setOrigin(0.5, 1);
+        this.video2 = this.add.video(512, this.gameHeight * 0.81, 'video2');
         this.video2.setDepth(3);
         this.video2.setScale(0.71);
         this.video2.setVisible(false);
 
-        this.background = this.add.image(512, 512, 'kick');
-        this.background.setOrigin(0.5, 1);
-        this.background.setScale(0.15);
+        // this.background = this.add.image(512, 512, 'kick');
+        // this.background.setOrigin(0.5, 1);
+        // this.background.setScale(0.15);
 
         this.physics.world.setBoundsCollision(true, true, true, true);
 
         const brickWidth = 16;
         const brickHeight = 8;
+        const gridWidth = 64;
+        const gridHeight = 80;
         this.bricks = this.physics.add.staticGroup({
-            key: 'assets', frame: ['blue1'],
-            frameQuantity: 64 * 64,
+            key: 'assets', frame: ['green1'],
+            frameQuantity: gridWidth * gridHeight,
             gridAlign: {
-                width: 64,
-                height: 64,
+                width: gridWidth,
+                height: gridHeight,
                 cellWidth: brickWidth,
                 cellHeight: brickHeight,
                 x: -brickWidth * 1.5,
@@ -54,8 +56,8 @@ export class Game extends Scene {
             brick.body.setSize(brickWidth, brickHeight);
             brick.body.setOffset(brickWidth * 1.5, brickHeight * 1.5);
 
-            const row = Math.floor(index / 64);
-            const col = index % 64;
+            const row = Math.floor(index / gridWidth);
+            const col = index % gridWidth;
             brick.setData('row', row);
             brick.setData('col', col);
             brick.setFrame(this.brickState[row][col]);
@@ -66,12 +68,12 @@ export class Game extends Scene {
         });
 
         this.balls = this.physics.add.group();
-        this.firstBall = this.balls.create(512, 550, 'assets', 'ball1').setScale(0.5);
+        this.firstBall = this.balls.create(512, 700, 'assets', 'ball2').setScale(0.5);
         this.firstBall.setCollideWorldBounds(true).setBounce(1);
         this.firstBall.setData('onPaddle', true);
         this.firstBall.body.setCircle(11);
 
-        this.paddle = this.physics.add.image(512, 700, 'assets', 'paddle1').setImmovable();
+        this.paddle = this.physics.add.image(512, 750, 'new-paddle').setImmovable();
 
         // 보이지 않는 상단 벽 생성
         this.topWall = this.add.rectangle(512, 900, 1024, 50);
@@ -100,7 +102,7 @@ export class Game extends Scene {
     }
 
     hitBrick(ball, brick) {
-        if (this.brickState[brick.getData('row')][brick.getData('col')] === 'blue1') {
+        if (this.brickState[brick.getData('row')][brick.getData('col')] === 'green1') {
             brick.disableBody(true, true);
 
             if (this.video1.visible) {
@@ -116,8 +118,8 @@ export class Game extends Scene {
                 }
             }, null, this);
 
-            if (Phaser.Math.Between(1, 100) <= 50) {
-                const item = this.physics.add.image(brick.x, brick.y, 'assets', 'ball2');
+            if (Phaser.Math.Between(1, 100) <= 10) {
+                const item = this.physics.add.image(brick.x, brick.y, 'assets', 'ball1');
                 item.setVelocity(0, 150);
 
                 this.physics.add.collider(item, this.topWall, (item, topWall) => {
@@ -142,7 +144,7 @@ export class Game extends Scene {
                         }
 
                         for (let i = 0; i < 2; i++) {
-                            const newBall = this.balls.create(b.x, b.y, 'assets', 'ball1')
+                            const newBall = this.balls.create(b.x, b.y, 'assets', 'ball2')
                                 .setCollideWorldBounds(true)
                                 .setBounce(1).setScale(0.5);
 
