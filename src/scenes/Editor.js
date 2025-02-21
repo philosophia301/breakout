@@ -93,14 +93,14 @@ export class Editor extends Scene {
 
         this.input.keyboard.once('keydown-SPACE', () => {
             const saveData = JSON.stringify(this.brickState);
-            localStorage.setItem('brickEditorData', saveData);
+            // localStorage.setItem('brickEditorData', saveData);
             this.scene.start('Game', { brickState: this.brickState });
         });
 
         this.input.on('pointerdown', () => {
             if (/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)) {
                 const saveData = JSON.stringify(this.brickState);
-                localStorage.setItem('brickEditorData', saveData);
+                // localStorage.setItem('brickEditorData', saveData);
                 this.scene.start('Game', { brickState: this.brickState });
             }
         });

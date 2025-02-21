@@ -118,7 +118,7 @@ export class Game extends Scene {
                 }
             }, null, this);
 
-            if (Phaser.Math.Between(1, 100) <= 10) {
+            if (Phaser.Math.Between(1, 100) <= 3) {
                 const item = this.physics.add.image(brick.x, brick.y, 'assets', 'ball1');
                 item.setVelocity(0, 150);
 
